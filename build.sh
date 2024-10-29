@@ -131,7 +131,7 @@ function clone() {
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
         fi
         # Clone AnyKernel3
-	git clone --depth=1 https://github.com/Sa-Sajjad/AnyKernel3 AnyKernel3
+	git clone --depth=1 https://github.com/Snax-phycho/AnyKernel3.git AnyKernel3
 }
 ##------------------------------------------------------##
 

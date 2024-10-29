@@ -2,15 +2,16 @@ version: 2.1
 jobs:
   compile:
    docker:
-      - image: snaxpsycho/cirrus:latest
+      - image: nexgang/ubuntu:latest
    steps:
       - run:
           command: |
            git config --global user.name "Sa Sajjad"
            git config --global user.email "mdsojola12@gmail.com"
-           git config --global color.ui true
-           git clone --depth=1 https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -b ${CIRCLE_BRANCH} .
+           git config --global color.ui false
+           git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender -b snx .
            bash .circleci/build.sh
+
 workflows:
   version: 2.1
   cooking:

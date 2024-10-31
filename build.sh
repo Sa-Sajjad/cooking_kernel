@@ -4,10 +4,10 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nyxion-test"
+ZIPNAME="Nexus-test-oldcam"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=neutron
+COMPILER=nexus
 
 # Device Name and Model
 MODEL=Redmi Note 7

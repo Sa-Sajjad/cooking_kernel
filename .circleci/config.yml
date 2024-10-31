@@ -10,7 +10,7 @@ jobs:
            git config --global user.email "mdsojola12@gmail.com"
            git config --global color.ui true
            git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/nexus_kernel_xiaomi_lavender -b 14 .
-           bash .circleci/build.sh
+           bash build.sh
 
 workflows:
   version: 2.1

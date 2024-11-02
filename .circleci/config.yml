@@ -1,19 +1,10 @@
-version: 2.1
 jobs:
-  compile:
-   docker:
-      - image: nexgang/ubuntu:latest
-   steps:
+  build:
+    docker:
+      - image: 31482281/codespace:latest
+    # resource_class: large
+    steps:
+      - checkout
       - run:
-          command: |
-           git config --global user.name "Sa Sajjad"
-           git config --global user.email "mdsojola12@gmail.com"
-           git config --global color.ui false
-           git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_tulip -b master .
-           bash scripts/kbuild.sh
-
-workflows:
-  version: 2.1
-  cooking:
-    jobs:
-      - compile
+         name: Run script to start building kernel
+         command: git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_tulip -b master .&& bash scripts/kbuild.sh

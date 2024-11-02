@@ -4,10 +4,10 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nexus-test-oldcam"
+ZIPNAME="Unitrix--oldcam"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=nexus
+COMPILER=clang-18
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -93,7 +93,7 @@ function clone() {
     # Clone Toolchain
         if [ $COMPILER = "clang-18" ]; then
                 post_msg " Cloning V18.0.1 Clang ToolChain "
-		git clone --depth=1 --single-branch -b 18.0.1 https://gitlab.com/GhostMaster69-dev/android-clang clang
+		git clone --depth=1 --single-branch -b 19.0.1 https://gitlab.com/GhostMaster69-dev/android-clang clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "neutron" ]; then
 		post_msg " Cloning Neutron Clang ToolChain "

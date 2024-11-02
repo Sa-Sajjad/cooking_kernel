@@ -7,13 +7,13 @@ KERNEL_DIR="$(pwd)"
 ZIPNAME="Unitrix--oldcam"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=neutron
+COMPILER=proton
 
 # Device Name and Model
 MODEL=Redmi Note 7
 DEVICE=lavender
 # Kernel Defconfig
-DEFCONFIG=tulip_defconfig
+DEFCONFIG=lavender_defconfig
 
 
 # Specify Version

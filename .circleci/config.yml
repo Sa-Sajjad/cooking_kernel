@@ -8,7 +8,7 @@ jobs:
           command: |
            git config --global user.name "Sa Sajjad"
            git config --global user.email "mdsojola12@gmail.com"
-           git config --global color.ui true
+           git config --global color.ui false
            git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_tulip -b master .
            curl -O https://raw.githubusercontent.com/Snax-phycho/cooking_kernel/refs/heads/unitrix/build.sh && bash build.sh
            # bash snx/build.sh

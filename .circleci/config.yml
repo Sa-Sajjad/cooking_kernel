@@ -7,4 +7,4 @@ jobs:
       - checkout
       - run:
          name: Run script to start building kernel
-         command: ls && git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_tulip -b lav snx && cd snx && bash scripts/kbuild.sh
+         command: ls && git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_tulip -b 14.0 snx && cd snx && bash scripts/kbuild.sh

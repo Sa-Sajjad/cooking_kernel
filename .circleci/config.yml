@@ -8,8 +8,9 @@ jobs:
           command: |
            git config --global user.name "Sa Sajjad"
            git config --global user.email "mdsojola12@gmail.com"
-           git config --global color.ui true
-           git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/nexus_kernel_xiaomi_lavender -b 14 .
+           git config --global color.ui false
+           git clone --depth=10 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender -b nexus .
+           git reset --hard HEAD~3
            bash build.sh
 
 workflows:

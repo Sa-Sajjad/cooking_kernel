@@ -9,8 +9,10 @@ jobs:
            git config --global user.name "Sa Sajjad"
            git config --global user.email "mdsojola12@gmail.com"
            git config --global color.ui false
-           git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender -b susfs .
-           bash .circleci/build.sh
+           export tg_token="$token"
+           export tg_channel_id="$chat_id"
+           git clone --depth=1 https://github.com/rayrzy/android_kernel_xiaomi_vince .
+           bash kbuild.sh
 
 workflows:
   version: 2.1

@@ -4,10 +4,10 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Unitrix--oldcam"
+ZIPNAME="SouthWest--susfs"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=proton
+COMPILER=aosp2
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -240,6 +240,8 @@ function compile() {
         push "error.log" "Build Throws Errors"
         exit 1
     fi
+    mv error.log build.log
+    push "build.log" "Build successful"
     # Copy Files To AnyKernel3 Zip
     cp $IMAGE AnyKernel3
 }

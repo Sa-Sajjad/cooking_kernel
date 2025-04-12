@@ -64,7 +64,6 @@ TANGGAL=$(date +"%F%S")
 
 FINAL_ZIP=${ZIPNAME}-EAS-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
-
 install_neutron_clang() {
     sudo apt update && sudo apt install -y cpio flex bison bc libarchive-tools zstd wget curl
     if [ ! -d clang ]; then 
@@ -76,7 +75,7 @@ install_neutron_clang() {
 	fi
 		PATH="${KERNEL_DIR}/neutron/bin:$PATH"
 }
-
+##----------------------------------------------------------##
 # Cloning Dependencies
 function clone() {
     # Clone Toolchain
@@ -97,9 +96,14 @@ function clone() {
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 	elif [ $COMPILER = "aosp" ]; then
 		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
-		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r445002.git -b 12.0 aosp-clang
-        git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
-        git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
+		mkdir -p "${KERNEL_DIR}/aosp-clang"
+		(
+		cd "${KERNEL_DIR}/aosp-clang"
+		export CLANG_VERSION="clang-r547379"
+        wget -q -O - https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/${CLANG_VERSION}.tgz | tar -xzf -
+        )
+        git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git --depth=1 gcc
+		git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git  --depth=1 gcc32
         PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
 	elif [ $COMPILER = "aosp2" ]; then
 		post_msg " Cloning Aosp Clang "
@@ -224,7 +228,8 @@ function compile() {
 			elif [ -d ${KERNEL_DIR}/neutron ]; then
                 make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 "${DEFCONFIG}" O=out
                 echo "Compilation started..."
-                make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 O=out
+                make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 O=out \
+                V=$VERBOSE 2>&1 | tee error.log
             fi
 
     if ! [ -a "$IMAGE" ]; then

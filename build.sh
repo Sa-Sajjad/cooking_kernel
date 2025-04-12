@@ -13,7 +13,7 @@ COMPILER=neutron
 MODEL=Redmi Note 7
 DEVICE=lavender
 # Kernel Defconfig
-DEFCONFIG=lavender_defconfig
+DEFCONFIG=vendor/lavender-perf_defconfig
 
 
 # Specify Version
@@ -66,26 +66,15 @@ FINAL_ZIP=${ZIPNAME}-EAS-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
 
 install_neutron_clang() {
-    echo "Installing Neutron Clang..."
-    rm -rf "${KERNEL_DIR}/clang"
-    sudo apt update
-    sudo apt install libarchive-tools
-    mkdir -p "${KERNEL_DIR}/clang"
-    cd "${KERNEL_DIR}/clang"
-    echo 'Download antman and sync'
-    bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S=05012024
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to install Neutron Clang"
-        exit 1
-    fi
-    echo 'Patch for glibc'
-    bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") --patch=glibc
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to patch glibc"
-        exit 1
-    fi
-    echo 'Done'
-    cd ..
+    if [ ! -d clang ]; then 
+		mkdir -p "${KERNEL_DIR}/neutron" && cd "${KERNEL_DIR}/neutron"
+		bash <(curl -s https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman) -S
+		cd ..
+	else
+		echo "Neutron alreay cloned"
+	fi
+		PATH="${KERNEL_DIR}/neutron/bin:$PATH"
+		;;
 }
 
 # Cloning Dependencies
@@ -98,7 +87,6 @@ function clone() {
 		elif [ $COMPILER = "neutron" ]; then
 		post_msg " Cloning Neutron Clang ToolChain "
 		install_neutron_clang
-		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "proton" ]; then
 		post_msg " Cloning Proton Clang ToolChain "
 		git clone --depth=1  https://github.com/kdrag0n/proton-clang.git clang
@@ -234,6 +222,10 @@ function compile() {
                 CROSS_COMPILE=aarch64-linux-android- \
                 CROSS_COMPILE_ARM32=arm-linux-androideabi- \
                 V=$VERBOSE 2>&1 | tee error.log
+				elif [ -d ${KERNEL_DIR}/neutron ]; then
+                make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 "${DEFCONFIG}" O=out
+                echo "Compilation started..."
+                make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 O=out
                 fi
 
     if ! [ -a "$IMAGE" ]; then

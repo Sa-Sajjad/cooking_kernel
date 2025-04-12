@@ -1,53 +1,24 @@
 #!/usr/bin/env bash
 
- # Specify Kernel Directory
+ #
+ # Script For Building Android Kernel
+ #
+
+# Specify Kernel Directory
 KERNEL_DIR="$(pwd)"
 
-# Zip Name
-ZIPNAME="Nyxion-test"
+# Default linker to use for builds
+export LINKER="ld.lld"
 
-# Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=clang-18
-
-# Device Name and Model
-MODEL=Redmi Note 7
-DEVICE=lavender
-# Kernel Defconfig
+VERSION=BETA
 DEFCONFIG=vendor/lavender-perf_defconfig
 
-
-# Specify Version
-if [ "$1" = "--qti" ]; then
-VERSION=Qti-Old
-elif [ "$1" = "--a12-qti" ]; then
-VERSION=A12-Qti-Old
-elif [ "$1" = "--old" ]; then
-VERSION=Old
-elif [ "$1" = "--new" ]; then
-VERSION=New
-echo "CONFIG_XIAOMI_NEWCAM=y" >> arch/arm64/configs/lavender_defconfig
-fi
-
-# Optimizations
-LTO=0
-if [ $LTO = "1" ]; then
-echo "CONFIG_THIN_ARCHIVES=y
-CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
-CONFIG_LTO=y
-CONFIG_ARCH_SUPPORTS_LTO_CLANG=y
-CONFIG_ARCH_SUPPORTS_THINLTO=y
-CONFIG_THINLTO=y
-# CONFIG_LTO_NONE is not set
-CONFIG_LTO_CLANG=y
-CONFIG_LLVM_POLLY=y
-CONFIG_CRYPTO_AES_ARM64=y" >> arch/arm64/configs/lavender-perf_defconfig
-fi
-
-# Linker
-LINKER=ld.lld
-
-# Path
-IMAGE=$(pwd)/out/arch/arm64/boot/Image.gz-dtb
+# Files
+IMAGE=$(pwd)/out/arch/arm64/boot/Image.gz
+DTBO=$(pwd)/out/arch/arm64/boot/dtbo.img
+DTB=$(pwd)/out/arch/arm64/boot/dtb.img
+OUT_DIR=out/
+#dts_source=arch/arm64/boot/dts/vendor/qcom
 
 # Verbose Build
 VERBOSE=0
@@ -58,207 +29,305 @@ KERVER=$(make kernelversion)
 COMMIT_HEAD=$(git log --oneline -1)
 
 # Date and Time
-DATE=$(TZ=Asia/Dhaka date +"%Y%m%d-%T")
-START=$(date +"%s")
-TANGGAL=$(date +"%F%S")
+DATE=$(TZ=Bangladesh/Dhaka date +"%Y%m%d-%T")
+TM=$(date +"%F%S")
 
-FINAL_ZIP=${ZIPNAME}-EAS-${VERSION}-${DEVICE}-${TANGGAL}.zip
-##----------------------------------------------------------##
+# Specify Final Zip Name
+FINAL_ZIP=Nyxion-${VERSION}-${DEVICE}-KERNEL-${TM}.zip
 
-install_neutron_clang() {
-    echo "Installing Neutron Clang..."
-    rm -rf "${KERNEL_DIR}/clang"
-    sudo apt update
-    sudo apt install libarchive-tools
-    mkdir -p "${KERNEL_DIR}/clang"
-    cd "${KERNEL_DIR}/clang"
-    echo 'Download antman and sync'
-    bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") -S=05012024
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to install Neutron Clang"
-        exit 1
-    fi
-    echo 'Patch for glibc'
-    bash <(curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman") --patch=glibc
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to patch glibc"
-        exit 1
-    fi
-    echo 'Done'
-    cd ..
-}
+# Specify compiler [ proton, nexus, aosp ]
+COMPILER=aosp
 
-# Cloning Dependencies
-function clone() {
-    # Clone Toolchain
-        if [ $COMPILER = "clang-18" ]; then
-                post_msg " Cloning V18.0.1 Clang ToolChain "
-		git clone --depth=1 --single-branch -b 18.0.1 https://gitlab.com/GhostMaster69-dev/android-clang clang
-		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "neutron" ]; then
-		post_msg " Cloning Neutron Clang ToolChain "
-		install_neutron_clang
-		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "proton" ]; then
-		post_msg " Cloning Proton Clang ToolChain "
-		git clone --depth=1  https://github.com/kdrag0n/proton-clang.git clang
-		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "nexus" ]; then
-		post_msg " Cloning Nexus Clang ToolChain "
-		git clone --depth=1 -b nexus-14  https://gitlab.com/Project-Nexus/nexus-clang.git clang
-		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "aosp" ]; then
-		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
-		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r445002.git -b 12.0 aosp-clang
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
-                PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
-		elif [ $COMPILER = "aosp2" ]; then
-		post_msg " Cloning Aosp Clang "
-		git clone --depth=1 https://github.com/sohamxda7/llvm-stable  aosp-clang2
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
-                PATH="${KERNEL_DIR}/aosp-clang2/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
-		elif [ $COMPILER = "arter" ]; then
-		post_msg " Cloning Arter GCC 9.3.0 ToolChain "
-		git clone --depth=1 -b gcc64 https://github.com/ImSpiDy/gcc-9.3.0 gcc64
-		git clone --depth=1 -b gcc32 https://github.com/ImSpiDy/gcc-9.3.0 gcc32
-		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
-		elif [ $COMPILER = "eva" ]; then
-		post_msg " Cloning Eva GCC ToolChain "
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
-		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
-        fi
-        # Clone AnyKernel3
-	git clone --depth=1 https://github.com/Snax-phycho/AnyKernel3.git AnyKernel3
-}
-##------------------------------------------------------##
+# Clone ToolChain
+function cloneTC() {
+	
+	case $COMPILER in
+	
+		nexus)
+			git clone --depth=1  https://gitlab.com/Project-Nexus/nexus-clang.git clang
+			PATH="${KERNEL_DIR}/clang/bin:$PATH"
+			;;
 
+		neutron)
+			if [ ! -d clang ]; then
+			mkdir clang && cd clang
+			bash <(curl -s https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman) -S
+			cd ..
+			else
+			echo "Neutron alreay cloned"
+			fi
+			PATH="${KERNEL_DIR}/clang/bin:$PATH"
+			;;
+
+		nex14)
+			git clone --depth=1  https://gitlab.com/Project-Nexus/nexus-clang.git -b nexus-14 clang
+			PATH="${KERNEL_DIR}/clang/bin:$PATH"
+			;;
+
+		aosp)
+			echo "* Checking if Aosp Clang is already cloned..."
+			if [ -d clangB ]; then
+	  		echo ""
+	  		echo "  Already Cloned Aosp Clang"
+	  		echo ""
+			else
+			export CLANG_VERSION="clang-r547379"
+            mkdir -p clangB
+            (
+              cd clangB || exit
+              wget -q -O - https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/${CLANG_VERSION}.tgz | tar -xzf -
+            )
+
+			git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git --depth=1 gcc
+			git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git  --depth=1 gcc32
+			fi
+			PATH="${KERNEL_DIR}/clangB/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
+			;;
+			
+		zyc)
+		    if [ ! -d clang ]; then
+				mkdir clang
+            	cd clang
+		    	wget https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-main-lastbuild.txt
+		    	V="$(cat Clang-main-lastbuild.txt)"
+            	wget -q https://github.com/ZyCromerZ/Clang/releases/download/19.0.0git-$V-release/Clang-19.0.0git-$V.tar.gz
+	        	tar -xf Clang-19.0.0git-$V.tar.gz
+	        	cd ..
+				fi
+	        	PATH="${KERNEL_DIR}/clang/bin:$PATH"
+	        ;;
+	    slim)
+	        git clone --depth=1 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone -b slim-16 clangB
+	        git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git --depth=1 gcc
+			git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git  --depth=1 gcc32
+			PATH="${KERNEL_DIR}/clangB/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
+	        ;;
+	    eva-gcc)
+	        git clone https://github.com/mvaisakh/gcc-arm64 --depth=1 gcc64
+	        git clone https://github.com/mvaisakh/gcc-arm --depth=1 gcc32
+            PATH="${KERNEL_DIR}"/gcc32/bin:"${KERNEL_DIR}"/gcc64/bin:/usr/bin/:${PATH}
+            ;;
+		yuki)
+			git clone --depth=1 https://bitbucket.org/thexperienceproject/yuki-clang.git -b 20.0.0git clang
+			PATH="${KERNEL_DIR}/clang/bin:$PATH"
+			;;
+		*)
+			echo "Compiler not defined"
+			;;
+	esac
+        # Clone AnyKernel
+		rm -rf AnyKernel3
+		git clone --depth=1 https://github.com/Snax-phycho/AnyKernel3.git -b 4.19 AnyKernel3
+	}
+	
+# Export Variables
 function exports() {
-    if [ -d ${KERNEL_DIR}/clang ]; then
-    export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
-    elif [ -d ${KERNEL_DIR}/aosp-clang ]; then
-    export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/aosp-clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
-    elif [ -d ${KERNEL_DIR}/aosp-clang2 ]; then
-    export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/aosp-clang2/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
-    elif [ -d ${KERNEL_DIR}/gcc64 ]; then
-    export KBUILD_COMPILER_STRING=$("$KERNEL_DIR/gcc64"/bin/aarch64-elf-gcc --version | head -n 1)
-    fi
-    export ARCH=arm64
-    export SUBARCH=arm64
-    export LOCALVERSION="-${VERSION}"
-    export KBUILD_BUILD_HOST=ArchLinux
-    export KBUILD_BUILD_USER="Sa Sajjad"
-    export KBUILD_BUILD_VERSION=$DRONE_BUILD_NUMBER
-    export CI_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-    export PROCS=$(nproc --all)
-}
+	
+        # Export KBUILD_COMPILER_STRING
+        if [ -d ${KERNEL_DIR}/clang ];
+           then
+               export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+        elif [ -d ${KERNEL_DIR}/gcc64 ];
+           then
+               export KBUILD_COMPILER_STRING=$("$KERNEL_DIR/gcc64"/bin/aarch64-elf-gcc --version | head -n 1)
+        elif [ -d ${KERNEL_DIR}/clangB ];
+            then
+               export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/clangB/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+        fi
+        
+        # Export ARCH and SUBARCH
+        export ARCH=arm64
+        export SUBARCH=arm64
+               
+        # KBUILD HOST and USER
+        export KBUILD_BUILD_HOST=ArchLinux
+        export KBUILD_BUILD_USER="Sajjad"
+        
+	export PROCS=$(nproc --all)
+	export DISTRO=$(source /etc/os-release && echo "${NAME}")
+	}
 
-##----------------------------------------------------------------##
+# Telegram Bot Integration
 
 function post_msg() {
-    curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" \
-        -d chat_id="$chat_id" \
-        -d "disable_web_page_preview=true" \
-        -d "parse_mode=html" \
-        -d text="$1"
-}
-
-##----------------------------------------------------------##
+	curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" \
+	-d chat_id="$chat_id" \
+	-d "disable_web_page_preview=true" \
+	-d "parse_mode=html" \
+	-d text="$1"
+	}
 
 function push() {
-    curl -F document=@$1 "https://api.telegram.org/bot$token/sendDocument" \
-         -F chat_id="$chat_id" \
-         -F "disable_web_page_preview=true" \
-         -F "parse_mode=html" \
-         -F caption="$2"
-}
+	curl -F document=@$1 "https://api.telegram.org/bot$token/sendDocument" \
+	-F chat_id="$chat_id" \
+	-F "disable_web_page_preview=true" \
+	-F "parse_mode=html" \
+	-F caption="$2"
+	}
 
-##----------------------------------------------------------##
+# Compilation
+
+METHOD=$3
 
 function compile() {
-	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Branch : </b><code>$CI_BRANCH</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
-	                        make O=out ARCH=arm64 ${DEFCONFIG}
-	                        if [ -d ${KERNEL_DIR}/clang ]; then
-	                        make -kj$(nproc --all) O=out \
-				ARCH=arm64 \
-				CC=clang \
-				CROSS_COMPILE=aarch64-linux-gnu- \
-				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-				LLVM=1 \
-				LLVM_IAS=1 \
-				LD=${LINKER} \
-				AR=llvm-ar \
-				NM=llvm-nm \
-				OBJCOPY=llvm-objcopy \
-				OBJDUMP=llvm-objdump \
-				STRIP=llvm-strip \
-				READELF=llvm-readelf \
-				OBJSIZE=llvm-size \
-				V=$VERBOSE 2>&1 | tee error.log
-                                elif [ -d ${KERNEL_DIR}/gcc64 ]; then
-				make -kj$(nproc --all) O=out \
-				ARCH=arm64 \
-				CROSS_COMPILE_ARM32=arm-eabi- \
-				CROSS_COMPILE=aarch64-elf- \
-				LD=aarch64-elf-${LINKER} \
-				AR=llvm-ar \
-				NM=llvm-nm \
-				OBJCOPY=llvm-objcopy \
-				OBJDUMP=llvm-objdump \
-				STRIP=llvm-strip \
-				OBJSIZE=llvm-size \
-				V=$VERBOSE 2>&1 | tee error.log
-				elif [ -d ${KERNEL_DIR}/aosp-clang ]; then
-				make -kj$(nproc --all) O=out \
-				ARCH=arm64 \
-				CC=clang \
-				CLANG_TRIPLE=aarch64-linux-gnu- \
-				CROSS_COMPILE=aarch64-linux-android- \
-				CROSS_COMPILE_ARM32=arm-linux-androideabi- \
-				LD=${LINKER} \
-				AR=llvm-ar \
-				NM=llvm-nm \
-				OBJCOPY=llvm-objcopy \
-				OBJDUMP=llvm-objdump \
-				STRIP=llvm-strip \
-				READELF=llvm-readelf \
-				OBJSIZE=llvm-size \
-				V=$VERBOSE 2>&1 | tee error.log
-				elif [ -d ${KERNEL_DIR}/aosp-clang2 ]; then
-                make -j$(nproc --all) O=out \
-                ARCH=arm64 \
-                CC=clang \
-                CLANG_TRIPLE=aarch64-linux-gnu- \
-                CROSS_COMPILE=aarch64-linux-android- \
-                CROSS_COMPILE_ARM32=arm-linux-androideabi- \
-                V=$VERBOSE 2>&1 | tee error.log
-                fi
-
-    if ! [ -a "$IMAGE" ]; then
-        push "error.log" "Build Throws Errors"
-        exit 1
-    fi
-    # Copy Files To AnyKernel3 Zip
-    cp $IMAGE AnyKernel3
+START=$(date +"%s")
+	# Push Notification
+	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Europe/Lisbon date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
+	
+	# Compile
+	if [ -d ${KERNEL_DIR}/clang ];
+	   then
+           make O=out CC=clang ARCH=arm64 vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/debugfs.config ${DEFCONFIG}
+		   if [ "$METHOD" = "lto" ]; then
+		     scripts/config --file ${OUT_DIR}/.config \
+             -e LTO_CLANG \
+             -d THINLTO
+           fi
+	       make -kj$(nproc --all) O=out \
+	       ARCH=arm64 \
+	       LLVM=1 \
+	       LLVM_IAS=1 \
+	       CROSS_COMPILE=aarch64-linux-gnu- \
+	       CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+	       V=$VERBOSE 2>&1 | tee error.log
+	elif [ -d ${KERNEL_DIR}/gcc64 ];
+	   then
+           make O=out ARCH=arm64 vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/debugfs.config ${DEFCONFIG}
+		   if [ "$METHOD" = "lto" ]; then
+		     scripts/config --file ${OUT_DIR}/.config \
+             -e CONFIG_LTO_GCC
+           fi
+	       make -kj$(nproc --all) O=out \
+	       	ARCH=arm64 \
+	       	CC=aarch64-elf-gcc \
+			LD="${KERNEL_DIR}/gcc64/bin/aarch64-elf-ld.lld" \
+			AR=llvm-ar \
+			NM=llvm-nm \
+			OBJCOPY=llvm-objcopy \
+			OBJDUMP=llvm-objdump \
+			OBJCOPY=llvm-objcopy \
+			OBJSIZE=llvm-size \
+			STRIP=llvm-strip \
+			CROSS_COMPILE=aarch64-elf- \
+			CROSS_COMPILE_COMPAT=arm-eabi- \
+			CC_COMPAT=arm-eabi-gcc \
+	       	V=$VERBOSE 2>&1 | tee error.log
+        elif [ -d ${KERNEL_DIR}/clangB ];
+           then
+           make O=out CC=clang ARCH=arm64 vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/debugfs.config ${DEFCONFIG}
+		   if [ "$METHOD" = "lto" ]; then
+		     scripts/config --file ${OUT_DIR}/.config \
+             -e LTO_CLANG \
+             -d THINLTO
+           fi
+           make -kj$(nproc --all) O=out \
+	       ARCH=arm64 \
+	       LLVM=1 \
+	       LLVM_IAS=1 \
+	       CLANG_TRIPLE=aarch64-linux-gnu- \
+	       CROSS_COMPILE=aarch64-linux-android- \
+	       CROSS_COMPILE_COMPAT=arm-linux-androideabi- \
+	       V=$VERBOSE 2>&1 | tee error.log
+	fi
+	
+	# Verify Files
+	if ! [ -a "$IMAGE" ];
+	   then
+	       push "error.log" "Build Throws Errors"
+	       exit 1
+	fi
+	}
+	
+function compile_ksu() {
+START=$(date +"%s")
+	# Compile
+	if [ -d ${KERNEL_DIR}/clang ];
+	   then
+           make O=out CC=clang ARCH=arm64 vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/debugfs.config ${DEFCONFIG}
+		   if [ "$METHOD" = "lto" ]; then
+		     scripts/config --file ${OUT_DIR}/.config \
+             -e LTO_CLANG \
+             -d THINLTO
+           fi
+	       make -kj$(nproc --all) O=out \
+	       ARCH=arm64 \
+	       LLVM=1 \
+	       LLVM_IAS=1 \
+	       CROSS_COMPILE=aarch64-linux-gnu- \
+	       CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+	       V=$VERBOSE 2>&1 | tee error.log
+	elif [ -d ${KERNEL_DIR}/gcc64 ];
+	   then
+           make O=out ARCH=arm64 vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/debugfs.config ${DEFCONFIG}
+	       if [ "$METHOD" = "lto" ]; then
+		     scripts/config --file ${OUT_DIR}/.config \
+             -e CONFIG_LTO_GCC
+           fi
+		   make -kj$(nproc --all) O=out \
+	       ARCH=arm64 \
+	       CC=aarch64-elf-gcc \
+			LD="${KERNEL_DIR}/gcc64/bin/aarch64-elf-ld.lld" \
+			AR=llvm-ar \
+			NM=llvm-nm \
+			OBJCOPY=llvm-objcopy \
+			OBJDUMP=llvm-objdump \
+			OBJCOPY=llvm-objcopy \
+			OBJSIZE=llvm-size \
+			STRIP=llvm-strip \
+			CROSS_COMPILE=aarch64-elf- \
+			CROSS_COMPILE_COMPAT=arm-eabi- \
+			CC_COMPAT=arm-eabi-gcc \
+	       V=$VERBOSE 2>&1 | tee error.log
+        elif [ -d ${KERNEL_DIR}/clangB ];
+           then
+           make O=out CC=clang ARCH=arm64 vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/debugfs.config ${DEFCONFIG}
+		   if [ "$METHOD" = "lto" ]; then
+		     scripts/config --file ${OUT_DIR}/.config \
+             -e LTO_CLANG \
+             -d THINLTO
+           fi
+           make -kj$(nproc --all) O=out \
+	       ARCH=arm64 \
+	       LLVM=1 \
+	       LLVM_IAS=1 \
+	       CLANG_TRIPLE=aarch64-linux-gnu- \
+	       CROSS_COMPILE=aarch64-linux-android- \
+	       CROSS_COMPILE_COMPAT=arm-linux-androideabi- \
+	       V=$VERBOSE 2>&1 | tee error.log
+	fi
+	
+	# Verify Files
+	if ! [ -a "$IMAGE" ];
+	   then
+	       push "error.log" "Build Throws Errors"
+	       exit 1
+	   else
+	       post_msg " Kernel Compilation Finished. Started Zipping "
+	fi
 }
-##----------------------------------------------------------##
+
+# Zipping
+function move() {
+	# Copy Files To AnyKernel3 Zip
+	mv $IMAGE AnyKernel3
+}
 
 function zipping() {
+    # Zipping and Push Kernel
     cd AnyKernel3 || exit 1
     zip -r9 ${FINAL_ZIP} *
     MD5CHECK=$(md5sum "$FINAL_ZIP" | cut -d' ' -f1)
     push "$FINAL_ZIP" "Build took : $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) second(s) | For <b>$MODEL ($DEVICE)</b> | <b>${KBUILD_COMPILER_STRING}</b> | <b>MD5 Checksum : </b><code>$MD5CHECK</code>"
+	rm *.zip
     cd ..
 }
-##----------------------------------------------------------##
 
-clone
+cloneTC
 exports
 compile
 END=$(date +"%s")
 DIFF=$(($END - $START))
+move
+# KernelSU
+compile_ksu
 zipping
-
-##----------------*****-----------------------------##

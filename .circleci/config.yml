@@ -9,8 +9,10 @@ jobs:
            git config --global user.name "Sa Sajjad"
            git config --global user.email "mdsojola12@gmail.com"
            git config --global color.ui false
-           git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender -b wip .
-           bash .circleci/build.sh
+           git clone --depth=1 https://Snax-phycho:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender-4.19 -b 15.0 .
+           # bash .circleci/build.sh
+           # curl -s https://raw.githubusercontent.com/Sa-Sajjad/cooking_kernel/refs/heads/susfs/build.sh | bash
+           bash <(curl -s https://raw.githubusercontent.com/Sa-Sajjad/cooking_kernel/refs/heads/susfs/build.sh)
 
 workflows:
   version: 2.1

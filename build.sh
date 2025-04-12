@@ -7,7 +7,7 @@ KERNEL_DIR="$(pwd)"
 ZIPNAME="Nyxion-test"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=neutron
+COMPILER=clang-18
 
 # Device Name and Model
 MODEL=Redmi Note 7

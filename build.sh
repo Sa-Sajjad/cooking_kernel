@@ -13,7 +13,7 @@ COMPILER=clang-18
 MODEL=Redmi Note 7
 DEVICE=lavender
 # Kernel Defconfig
-DEFCONFIG=lavender_defconfig
+DEFCONFIG=vendor/lavender-perf_defconfig
 
 
 # Specify Version

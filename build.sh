@@ -74,7 +74,6 @@ install_neutron_clang() {
 		echo "Neutron alreay cloned"
 	fi
 		PATH="${KERNEL_DIR}/neutron/bin:$PATH"
-		;;
 }
 
 # Cloning Dependencies
@@ -167,9 +166,9 @@ function push() {
 
 function compile() {
 	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Branch : </b><code>$CI_BRANCH</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
-	                        make O=out ARCH=arm64 ${DEFCONFIG}
-	                        if [ -d ${KERNEL_DIR}/clang ]; then
-	                        make -kj$(nproc --all) O=out \
+            if [ -d ${KERNEL_DIR}/clang ]; then
+                make O=out ARCH=arm64 ${DEFCONFIG}
+                make -kj$(nproc --all) O=out \
 				ARCH=arm64 \
 				CC=clang \
 				CROSS_COMPILE=aarch64-linux-gnu- \
@@ -185,7 +184,8 @@ function compile() {
 				READELF=llvm-readelf \
 				OBJSIZE=llvm-size \
 				V=$VERBOSE 2>&1 | tee error.log
-                                elif [ -d ${KERNEL_DIR}/gcc64 ]; then
+            elif [ -d ${KERNEL_DIR}/gcc64 ]; then
+                make O=out ARCH=arm64 ${DEFCONFIG}
 				make -kj$(nproc --all) O=out \
 				ARCH=arm64 \
 				CROSS_COMPILE_ARM32=arm-eabi- \
@@ -198,7 +198,8 @@ function compile() {
 				STRIP=llvm-strip \
 				OBJSIZE=llvm-size \
 				V=$VERBOSE 2>&1 | tee error.log
-				elif [ -d ${KERNEL_DIR}/aosp-clang ]; then
+            elif [ -d ${KERNEL_DIR}/aosp-clang ]; then
+                make O=out ARCH=arm64 ${DEFCONFIG}
 				make -kj$(nproc --all) O=out \
 				ARCH=arm64 \
 				CC=clang \
@@ -214,7 +215,8 @@ function compile() {
 				READELF=llvm-readelf \
 				OBJSIZE=llvm-size \
 				V=$VERBOSE 2>&1 | tee error.log
-				elif [ -d ${KERNEL_DIR}/aosp-clang2 ]; then
+			elif [ -d ${KERNEL_DIR}/aosp-clang2 ]; then
+                make O=out ARCH=arm64 ${DEFCONFIG}
                 make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \
@@ -222,11 +224,11 @@ function compile() {
                 CROSS_COMPILE=aarch64-linux-android- \
                 CROSS_COMPILE_ARM32=arm-linux-androideabi- \
                 V=$VERBOSE 2>&1 | tee error.log
-				elif [ -d ${KERNEL_DIR}/neutron ]; then
+			elif [ -d ${KERNEL_DIR}/neutron ]; then
                 make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 "${DEFCONFIG}" O=out
                 echo "Compilation started..."
                 make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 O=out
-                fi
+            fi
 
     if ! [ -a "$IMAGE" ]; then
         push "error.log" "Build Throws Errors"

@@ -4,7 +4,7 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nyxion-test"
+ZIPNAME="NYXION-SUFS"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
 COMPILER=neutron
@@ -66,6 +66,7 @@ FINAL_ZIP=${ZIPNAME}-EAS-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
 
 install_neutron_clang() {
+    sudo apt update && sudo apt install -y cpio flex bison bc libarchive-tools zstd wget curl
     if [ ! -d clang ]; then 
 		mkdir -p "${KERNEL_DIR}/neutron" && cd "${KERNEL_DIR}/neutron"
 		bash <(curl -s https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman) -S
@@ -79,58 +80,60 @@ install_neutron_clang() {
 # Cloning Dependencies
 function clone() {
     # Clone Toolchain
-        if [ $COMPILER = "clang-18" ]; then
-                post_msg " Cloning V18.0.1 Clang ToolChain "
+    if [ $COMPILER = "clang-18" ]; then
+        post_msg " Cloning V18.0.1 Clang ToolChain "
 		git clone --depth=1 --single-branch -b 18.0.1 https://gitlab.com/GhostMaster69-dev/android-clang clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "neutron" ]; then
+	elif [ $COMPILER = "neutron" ]; then
 		post_msg " Cloning Neutron Clang ToolChain "
 		install_neutron_clang
-		elif [ $COMPILER = "proton" ]; then
+	elif [ $COMPILER = "proton" ]; then
 		post_msg " Cloning Proton Clang ToolChain "
 		git clone --depth=1  https://github.com/kdrag0n/proton-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "nexus" ]; then
+	elif [ $COMPILER = "nexus" ]; then
 		post_msg " Cloning Nexus Clang ToolChain "
 		git clone --depth=1 -b nexus-14  https://gitlab.com/Project-Nexus/nexus-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
-		elif [ $COMPILER = "aosp" ]; then
+	elif [ $COMPILER = "aosp" ]; then
 		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r445002.git -b 12.0 aosp-clang
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
-                PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
-		elif [ $COMPILER = "aosp2" ]; then
+        git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
+        git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
+        PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
+	elif [ $COMPILER = "aosp2" ]; then
 		post_msg " Cloning Aosp Clang "
 		git clone --depth=1 https://github.com/sohamxda7/llvm-stable  aosp-clang2
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
-                git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
-                PATH="${KERNEL_DIR}/aosp-clang2/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
-		elif [ $COMPILER = "arter" ]; then
+        git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
+        git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
+        PATH="${KERNEL_DIR}/aosp-clang2/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
+	elif [ $COMPILER = "arter" ]; then
 		post_msg " Cloning Arter GCC 9.3.0 ToolChain "
 		git clone --depth=1 -b gcc64 https://github.com/ImSpiDy/gcc-9.3.0 gcc64
 		git clone --depth=1 -b gcc32 https://github.com/ImSpiDy/gcc-9.3.0 gcc32
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
-		elif [ $COMPILER = "eva" ]; then
+	elif [ $COMPILER = "eva" ]; then
 		post_msg " Cloning Eva GCC ToolChain "
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
-        fi
-        # Clone AnyKernel3
-	git clone --depth=1 https://github.com/Snax-phycho/AnyKernel3.git AnyKernel3
+    fi
+    # Clone AnyKernel3
+	git clone --depth=1 https://github.com/Snax-phycho/AnyKernel3.git -b 4.19 AnyKernel3
 }
 ##------------------------------------------------------##
 
 function exports() {
     if [ -d ${KERNEL_DIR}/clang ]; then
-    export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+        export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
     elif [ -d ${KERNEL_DIR}/aosp-clang ]; then
-    export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/aosp-clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+        export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/aosp-clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
     elif [ -d ${KERNEL_DIR}/aosp-clang2 ]; then
-    export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/aosp-clang2/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+        export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/aosp-clang2/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+    elif [ -d ${KERNEL_DIR}/neutron ]; then
+        export KBUILD_COMPILER_STRING=$(${KERNEL_DIR}/neutron/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
     elif [ -d ${KERNEL_DIR}/gcc64 ]; then
-    export KBUILD_COMPILER_STRING=$("$KERNEL_DIR/gcc64"/bin/aarch64-elf-gcc --version | head -n 1)
+        export KBUILD_COMPILER_STRING=$("$KERNEL_DIR/gcc64"/bin/aarch64-elf-gcc --version | head -n 1)
     fi
     export ARCH=arm64
     export SUBARCH=arm64
@@ -141,9 +144,7 @@ function exports() {
     export CI_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
     export PROCS=$(nproc --all)
 }
-
 ##----------------------------------------------------------------##
-
 function post_msg() {
     curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" \
         -d chat_id="$chat_id" \
@@ -151,9 +152,7 @@ function post_msg() {
         -d "parse_mode=html" \
         -d text="$1"
 }
-
 ##----------------------------------------------------------##
-
 function push() {
     curl -F document=@$1 "https://api.telegram.org/bot$token/sendDocument" \
          -F chat_id="$chat_id" \
@@ -161,9 +160,7 @@ function push() {
          -F "parse_mode=html" \
          -F caption="$2"
 }
-
 ##----------------------------------------------------------##
-
 function compile() {
 	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Branch : </b><code>$CI_BRANCH</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
             if [ -d ${KERNEL_DIR}/clang ]; then
@@ -238,7 +235,6 @@ function compile() {
     cp $IMAGE AnyKernel3
 }
 ##----------------------------------------------------------##
-
 function zipping() {
     cd AnyKernel3 || exit 1
     zip -r9 ${FINAL_ZIP} *
@@ -247,12 +243,10 @@ function zipping() {
     cd ..
 }
 ##----------------------------------------------------------##
-
 clone
 exports
 compile
 END=$(date +"%s")
 DIFF=$(($END - $START))
 zipping
-
 ##----------------*****-----------------------------##

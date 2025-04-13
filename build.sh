@@ -64,6 +64,17 @@ TANGGAL=$(date +"%F%S")
 
 FINAL_ZIP=${ZIPNAME}-EAS-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
+prompt_build_kernel() {
+        echo "Writing configuration..."
+        local host_glibc
+        host_glibc=$(ldd --version | head -n1 | grep -oE '[^ ]+$')
+
+        # Use neutron clang environmental variables if glibc is <= 2.35
+            make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 "${DEFCONFIG}" O=out
+            echo "Compilation started..."
+            make -j$(nproc) ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 O=out
+}
+##----------------------------------------------------------##
 install_neutron_clang() {
     sudo apt update && sudo apt install -y cpio flex bison bc libarchive-tools zstd wget curl
     if [ ! -d clang ]; then 
@@ -251,7 +262,8 @@ function zipping() {
 ##----------------------------------------------------------##
 clone
 exports
-compile
+prompt_build_kernel
+# compile
 END=$(date +"%s")
 DIFF=$(($END - $START))
 zipping

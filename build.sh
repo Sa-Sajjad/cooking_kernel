@@ -7,7 +7,7 @@ KERNEL_DIR="$(pwd)"
 ZIPNAME="NYXION-SUFS"
 
 # Specify compiler ( neutron, eva , clang-18 , proton , arter , aosp , aosp2 & nexus )
-COMPILER=aosp
+COMPILER=neutron
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -69,7 +69,8 @@ install_neutron_clang() {
     if [ ! -d clang ]; then 
 		mkdir -p "${KERNEL_DIR}/neutron" && cd "${KERNEL_DIR}/neutron"
 		bash <(curl -s https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman) -S
-		cd ..
+		bash <(curl -s https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman) --patch=glibc
+		cd -
 	else
 		echo "Neutron alreay cloned"
 	fi

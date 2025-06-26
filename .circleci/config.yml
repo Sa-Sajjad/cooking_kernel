@@ -2,7 +2,8 @@ version: 2.1
 jobs:
   compile:
    docker:
-      - image: 31482281/codespace:latest
+      - image: gitpod/workspace-full:latest
+      gitpod/workspace-full
       # - image: ubuntu:22.04
    steps:
       - run:
@@ -11,7 +12,8 @@ jobs:
            git config --global user.email "mdsojola12@gmail.com"
            git config --global color.ui false
            git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender-4.19 -b 15.0 .
-           bash build.sh
+           sudo rm /etc/apt/sources.list.d/ondrej-ubuntu-nginx-mainline-jammy.list
+           bash build.sh -up
 
 workflows:
   version: 2.1

@@ -2,7 +2,8 @@ version: 2.1
 jobs:
   compile:
    docker:
-      - image: ubuntu:22.04
+      - image: 31482281/codespace:latest
+      # - image: ubuntu:22.04
    steps:
       - run:
           command: |
@@ -10,7 +11,7 @@ jobs:
            git config --global user.email "mdsojola12@gmail.com"
            git config --global color.ui false
            git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender-4.19 -b 15.0 .
-           bash build.sh -up
+           bash build.sh
 
 workflows:
   version: 2.1

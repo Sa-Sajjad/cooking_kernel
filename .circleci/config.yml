@@ -3,7 +3,6 @@ jobs:
   compile:
    docker:
       - image: gitpod/workspace-full:latest
-      gitpod/workspace-full
       # - image: ubuntu:22.04
    steps:
       - run:

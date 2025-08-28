@@ -2,13 +2,15 @@ version: 2.1
 jobs:
   compile:
    docker:
-      - image: nexgang/ubuntu:latest
+      - image: 31482281/codespace:latest
    steps:
       - run:
           command: |
+           export CHANNEL_ID="$chat_id"
+           export TELEGRAM_TOKEN="$token"
            git config --global user.name "Sã Śâjjãd"; git config --global user.email "103353616+Sa-Sajjad@users.noreply.github.com"; git config --global color.ui false
-           git clone --depth=5 https://Sa-Sajjad:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender -b snx .
-           bash .circleci/build.sh
+           git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/android_kernel_xiaomi_sdm660 -b ten .
+           bash scripts/kbuild.sh
 
 workflows:
   version: 2.1

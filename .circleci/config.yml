@@ -7,7 +7,7 @@ jobs:
       - run:
           command: |
            git config --global user.name "Sã Śâjjãd"; git config --global user.email "103353616+Sa-Sajjad@users.noreply.github.com"; git config --global color.ui false
-           git clone --depth=5 https://Sa-Sajjad:$ght@github.com/Snax-phycho/kernel_xiaomi_lavender -b snx .
+           git clone --depth=5 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender -b wip .
            bash .circleci/build.sh
 
 workflows:

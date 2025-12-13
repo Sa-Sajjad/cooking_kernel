@@ -9,7 +9,7 @@ jobs:
       - run:
           command: |
            git config --global user.name "Sã Śâjjãd"; git config --global user.email "103353616+Sa-Sajjad@users.noreply.github.com"; git config --global color.ui false
-           git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender-4.19 -b san kernel && cd kernel
+           git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/android_kernel_qcom_sdm660 -b qcom kernel && cd kernel
            bash build.sh
 
 workflows:

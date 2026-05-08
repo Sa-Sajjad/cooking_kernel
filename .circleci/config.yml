@@ -7,7 +7,9 @@ jobs:
       - run:
           command: |
            git config --global user.name "Sã Śâjjãd"; git config --global user.email "103353616+Sa-Sajjad@users.noreply.github.com"; git config --global color.ui false
-           git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender -b wip .
+           git clone --depth=5 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender -b snx-rksu .
+           git reset --hard HEAD~1
+           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s v3.1.0-legacy
            bash .circleci/build.sh
 
 workflows:

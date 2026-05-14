@@ -15,7 +15,7 @@ jobs:
             gcc-aarch64-linux-gnu libyaml-dev cpio
 
             git clone --recursive
-            https://github.com/Joker-V2/kernel_xiaomi_violet -b ${CIRCLE_BRANCH}
+            https://github.com/Sa-Sajjad/kernel_xiaomi_violet
             --depth=1 violet
 
             cd violet

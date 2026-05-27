@@ -4,7 +4,7 @@ jobs:
    docker:
       - image: ghcr.io/snx-r/cirrus:latest
       # - image: gitpod/workspace-full:latest
-      # - image: ubuntu:22.04
+      ## - image: ubuntu:22.04
    steps:
       - run:
           command: |

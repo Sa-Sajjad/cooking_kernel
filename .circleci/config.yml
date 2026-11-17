@@ -10,7 +10,7 @@ jobs:
           command: |
            git config --global user.name "Sã Śâjjãd"; git config --global user.email "103353616+Sa-Sajjad@users.noreply.github.com"; git config --global color.ui false
            git clone --depth=10 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender-4.19 -b wip kernel && cd kernel
-           git reset --hard f145a43737aa14119892f661703c51ba02230eb6
+           # git reset --hard f145a43737aa14119892f661703c51ba02230eb6
            # curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s v3.2.0-legacy
            bash build.sh --ksu
 

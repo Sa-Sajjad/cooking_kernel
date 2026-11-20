@@ -9,9 +9,8 @@ jobs:
       - run:
           command: |
            git config --global user.name "Sã Śâjjãd"; git config --global user.email "103353616+Sa-Sajjad@users.noreply.github.com"; git config --global color.ui false
-           git clone --depth=1 https://Sa-Sajjad:$ght@github.com/Sa-Sajjad/kernel_xiaomi_lavender-4.19 -b sw kernel && cd kernel
-           # sudo rm /etc/apt/sources.list.d/ondrej-ubuntu-nginx-mainline-jammy.list
-           curl https://raw.githubusercontent.com/Sa-Sajjad/kernel_xiaomi_lavender-4.19/refs/heads/southwest/build.sh | bash
+           git clone --depth=1 https://github.com/pix106/android_kernel_xiaomi_sdm660_southwest-ng -b main kernel && cd kernel
+           curl https://gist.githubusercontent.com/Sa-Sajjad/b4faddd0db1d9a09f12337d55cba4c00/raw/kbuild.sh | bash
 
 workflows:
   version: 2.1
